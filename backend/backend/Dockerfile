@@ -1,10 +1,19 @@
-FROM eclipse-temurin:25-jdk AS build
-WORKDIR /app
-COPY . .
-RUN chmod +x mvnw && ./mvnw -q clean package -DskipTests
+FROM maven:3.9-eclipse-temurin-17 AS build
 
-FROM eclipse-temurin:25-jre
 WORKDIR /app
+
+COPY backend/backend/pom.xml .
+
+COPY backend/backend/src ./src
+
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+
 COPY --from=build /app/target/*.jar app.jar
-ENV JAVA_TOOL_OPTIONS="-Xmx400m"
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+EXPOSE 8080
+
+CMD ["java", "-jar", "app.jar"]
